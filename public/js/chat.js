@@ -1,11 +1,15 @@
 const socket=io()
 
-socket.on('countUpdated',(count)=>{
-    console.log("The count has been updated" ,count);
+socket.on('connectionMade',(message)=>{
+    console.log(message);
 
 })
+const weatherform=document.querySelector('#message-form');
 
-document.querySelector('#increment').addEventListener('click',()=>{
-     console.log('Clicked')
-     socket.emit('increment')
-})
+
+
+ weatherform.addEventListener('submit',(e)=>{
+     e.preventDefault();
+     const message=e.target.elements.message
+      socket.emit('sendMessage',message.value);
+ })
