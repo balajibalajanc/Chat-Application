@@ -6,12 +6,22 @@ const $messageformbutton=$messageform.querySelector('button');
 const $sendlocationbutton=document.querySelector('#send-location')
 const $message=document.querySelector('#messages')
 const $messageTemplate=document.querySelector('#message-template').innerHTML
-
+const $locationmessageTemlate=document.querySelector('#location-message-template').innerHTML
 
 socket.on('connectionMade',(message)=>{
     console.log(message);
     const html=Mustache.render($messageTemplate,{
-        message
+        message:message.text,
+        createdAt:moment(message.createdAt).format('hh:mm a')
+    })
+    $message.insertAdjacentHTML('beforeend',html)
+})
+
+socket.on('locationMessage',(url)=>{
+    console.log(url);
+    const html=Mustache.render($locationmessageTemlate,{
+       url: url.url_link,
+       createdAt:moment(url.createdAt).format('hh:mm a')
     })
     $message.insertAdjacentHTML('beforeend',html)
 })
