@@ -26,28 +26,36 @@ io.on('connection',(socket)=>{
             socket.join(user.room)
             
             //Welcome Message emitted from server to the client
-            socket.emit('connectionMade',generateMessage('Welcome to the MoodBoard Chat Application'));
+            socket.emit('connectionMade',generateMessage('Admin','Welcome to the MoodBoard Chat Application'));
 
             //New User joind message to all the rest of the client in the server
-            socket.broadcast.to(user.room).emit('connectionMade',generateMessage(`${user.username}  hae been joined`));
+            socket.broadcast.to(user.room).emit('connectionMade',generateMessage('Admin',`${user.username}  joined`));
+            io.to(user.room).emit('roomData',{
+                room:user.room,
+                users:getUsersInRoom(user.room)
+            })
+
             callback(); 
     })
 
 
     socket.on('sendMessage',(sentFromClient,callback)=>{
+            const {username,room}=getUser(socket.id);
+           
             const filter= new Filter();
             if(filter.isProfane(sentFromClient))
             {
                 return callback("profanity is not allowed")
             }
             //sending the message to all the client in the server from a user
-             io.emit('connectionMade',generateMessage(sentFromClient));
+             io.to(room).emit('connectionMade',generateMessage(username,sentFromClient));
             callback();
-         })
+            })
 
     socket.on('sendLocation',(coords,callback)=>{
+            const {username,room}=getUser(socket.id);
             //io.emit('connectionMade',`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`);
-            io.emit('locationMessage',generateLocationMessage(`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`));
+            io.to(room).emit('locationMessage',generateLocationMessage(username,`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`));
             callback();
          })
 
@@ -56,7 +64,11 @@ io.on('connection',(socket)=>{
             const user=removeUser(socket.id);
             if(user){ 
              // User left message to all the rest of the client in the server
-            io.to(user.room).emit('connectionMade',generateMessage(`${user.username} has left`));
+            io.to(user.room).emit('connectionMade',generateMessage('Admin',`${user.username} has left`));
+            io.to(user.room).emit('roomData',{
+                room:user.room,
+                users:getUsersInRoom(user.room)
+            })
             }
         })
 
