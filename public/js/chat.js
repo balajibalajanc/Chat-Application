@@ -1,12 +1,18 @@
 const socket=io()
 
+//Elements
 const $messageform=document.querySelector('#message-form');
 const $messageforminput=$messageform.querySelector('input');
 const $messageformbutton=$messageform.querySelector('button');
 const $sendlocationbutton=document.querySelector('#send-location')
 const $message=document.querySelector('#messages')
+
+//Templates
 const $messageTemplate=document.querySelector('#message-template').innerHTML
 const $locationmessageTemlate=document.querySelector('#location-message-template').innerHTML
+
+//options
+const {username,room}=Qs.parse(location.search,{ignoreQueryPrefix: true})
 
 socket.on('connectionMade',(message)=>{
     console.log(message);
@@ -60,4 +66,12 @@ socket.on('locationMessage',(url)=>{
         });
      })
 
+ })
+
+ socket.emit('join',{username,room},(error)=>{
+     if(error)
+     {
+         alert(error)
+         location.href='/'
+     }
  })

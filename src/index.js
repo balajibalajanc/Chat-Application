@@ -14,15 +14,27 @@ const io=socketio(server);
 const Filter=require('bad-words');
 const {generateMessage,generateLocationMessage}=require('./utils/message')
 app.use(express.static(public_dir_path))
-
+const {addUser,removeUser,getUser,getUsersInRoom}= require('./utils/users')
 
 io.on('connection',(socket)=>{
-   
-    //Welcome Message emitted from server to the client
-    socket.emit('connectionMade',generateMessage('Welcome to the MoodBoard Chat Application'));
-    //New User joind message to all the rest of the client in the server
-    socket.broadcast.emit('connectionMade',generateMessage('A new User hae been joined'));
-        socket.on('sendMessage',(sentFromClient,callback)=>{
+
+    socket.on('join',(options,callback)=>{      
+            const {error,user}=addUser({id:socket.id,...options});
+            if(error)
+                { return callback(error)}
+            
+            socket.join(user.room)
+            
+            //Welcome Message emitted from server to the client
+            socket.emit('connectionMade',generateMessage('Welcome to the MoodBoard Chat Application'));
+
+            //New User joind message to all the rest of the client in the server
+            socket.broadcast.to(user.room).emit('connectionMade',generateMessage(`${user.username}  hae been joined`));
+            callback(); 
+    })
+
+
+    socket.on('sendMessage',(sentFromClient,callback)=>{
             const filter= new Filter();
             if(filter.isProfane(sentFromClient))
             {
@@ -33,16 +45,24 @@ io.on('connection',(socket)=>{
             callback();
          })
 
-         socket.on('sendLocation',(coords,callback)=>{
+    socket.on('sendLocation',(coords,callback)=>{
             //io.emit('connectionMade',`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`);
             io.emit('locationMessage',generateLocationMessage(`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`));
             callback();
          })
 
-         socket.on('disconnect',()=>{
+    socket.on('disconnect',()=>{
+
+            const user=removeUser(socket.id);
+            if(user){ 
              // User left message to all the rest of the client in the server
-            io.emit('connectionMade',generateMessage('A user has been left from the group'));
+            io.to(user.room).emit('connectionMade',generateMessage(`${user.username} has left`));
+            }
         })
+
+
+
+    
     })
     
 
