@@ -10,4 +10,4 @@ room and able to chat and share the location so far and the remaining advanced f
 ##### Database- MongoDB
 
 ## Dependent Dev functionality
-https://github.com/balajibalajanc/Task_manager- ## Needs to be integerated
+https://github.com/balajibalajanc/Task_manager-  Needs to be integerated
